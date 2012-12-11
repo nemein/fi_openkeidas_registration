@@ -36,11 +36,13 @@ class fi_openkeidas_registration_controllers_register
         // Populate user
         midgardmvc_helper_forms_mgdschema::form_to_object($form, $user);
 
-        $account = $this->create_account($user);
+        $password = $this->generate_password();
+
+        $account = $this->create_account($user, $password);
 
         midgardmvc_core::get_instance()->authentication->login(array(
             'login' => $account->login,
-            'password' => $account->password
+            'password' => $password
         ));
 
         midgardmvc_core::get_instance()->head->relocate('/');
@@ -78,7 +80,7 @@ class fi_openkeidas_registration_controllers_register
         return true;
     }
 
-    private function create_account(fi_openkeidas_registration_user $user)
+    private function create_account(fi_openkeidas_registration_user $user, $password)
     {
         if (!$this->check_email($user->email))
         {
@@ -99,8 +101,6 @@ class fi_openkeidas_registration_controllers_register
 
         // Typecast to midgard_person
         $person = new midgard_person($user->guid);
-
-        $password = $this->generate_password();
 
         $account = new midgard_user();
         $account->login = $user->email;

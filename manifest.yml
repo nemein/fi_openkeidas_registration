@@ -3,7 +3,7 @@ requires:
     - {type: github, user: midgardproject, repository: midgardmvc_helper_forms, branch: master}
 routes:
   registration:
-    path: /
+    path: /lomake
     controller: fi_openkeidas_registration_controllers_register
     action: form
     template_aliases:
