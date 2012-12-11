@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This is the Midgard2 schema for articles -->
+<Schema xmlns="http://www.midgard-project.org/repligard/1.4">
+  <type name="fi_openkeidas_registration_user" extends="midgard_person">
+    <property name="memberid" type="string" unique="yes" />
+    <property name="email" type="string" />
+    <property name="school" type="string" />
+    <property name="municipality" type="string" />
+  </type>
+</Schema>
