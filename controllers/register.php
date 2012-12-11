@@ -30,5 +30,7 @@ class fi_openkeidas_registration_controllers_register
         {
             $item->set_required(true);
         }
+
+        midgardmvc_core::get_instance()->head->set_title('Rekisteröityminen');
     }
 }
