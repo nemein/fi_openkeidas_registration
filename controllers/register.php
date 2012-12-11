@@ -97,6 +97,9 @@ class fi_openkeidas_registration_controllers_register
             throw new midgardmvc_exception_httperror('Failed to create user');
         }
 
+        // Typecast to midgard_person
+        $person = new midgard_person($user->guid);
+
         $password = $this->generate_password();
 
         $account = new midgard_user();
@@ -105,7 +108,7 @@ class fi_openkeidas_registration_controllers_register
         $account->usertype = 1;
         $account->authtype = 'SHA1';
         $account->active = true;
-        $account->set_person($user);
+        $account->set_person($person);
         if (!$account->create())
         {
             $transaction->rollback();
