@@ -101,7 +101,7 @@ class fi_openkeidas_registration_controllers_register
 
         $account = new midgard_user();
         $account->login = $user->email;
-        $account->password = $password;
+        $account->password = sha1($password);
         $account->usertype = 1;
         $account->authtype = 'SHA1';
         $account->active = true;
@@ -121,5 +121,10 @@ class fi_openkeidas_registration_controllers_register
         }
         midgardmvc_core::get_instance()->authorization->leave_sudo();
         return $account;
+    }
+
+    private function generate_password()
+    {
+        return substr(hash('sha512', rand()), 0, 6);
     }
 }
