@@ -28,8 +28,6 @@ class fi_openkeidas_registration_controllers_register
             return;
         }
 
-        midgardmvc_core::get_instance()->authorization->enter_sudo('fi_openkeidas_registration'); 
-
         // Read values from POST
         $user = new fi_openkeidas_registration_user();
         $form = $this->generate_form($user);
@@ -38,7 +36,14 @@ class fi_openkeidas_registration_controllers_register
         // Populate user
         midgardmvc_helper_forms_mgdschema::form_to_object($form, $user);
 
-        $this->create_account($user);
+        $account = $this->create_account($user);
+
+        midgardmvc_core::get_instance()->authentication->login(array(
+            'login' => $account->login,
+            'password' => $account->password
+        ));
+
+        midgardmvc_core::get_instance()->head->relocate('/');
     }
 
     private function generate_form(fi_openkeidas_registration_user $user)
@@ -62,7 +67,59 @@ class fi_openkeidas_registration_controllers_register
         return $form;
     }
 
+    private function check_email($email)
+    {
+        $qb = new midgard_query_builder('fi_openkeidas_registration_user');
+        $qb->add_constraint('email', '=', $email);
+        if ($qb->count() > 0)
+        {
+            return false;
+        }
+        return true;
+    }
+
     private function create_account(fi_openkeidas_registration_user $user)
     {
+        if (!$this->check_email($user->email))
+        {
+            throw new midgardmvc_exception_unauthorized('User account with this email already exists');
+        }
+
+        midgardmvc_core::get_instance()->authorization->enter_sudo('fi_openkeidas_registration'); 
+
+        $transaction = new midgard_transaction();
+        $transaction->begin();
+
+        if (!$user->create())
+        {
+            $transaction->rollback();
+            midgardmvc_core::get_instance()->authorization->leave_sudo();
+            throw new midgardmvc_exception_httperror('Failed to create user');
+        }
+
+        $password = $this->generate_password();
+
+        $account = new midgard_user();
+        $account->login = $user->email;
+        $account->password = $password;
+        $account->usertype = 1;
+        $account->authtype = 'SHA1';
+        $account->active = true;
+        $account->set_person($user);
+        if (!$account->create())
+        {
+            $transaction->rollback();
+            midgardmvc_core::get_instance()->authorization->leave_sudo();
+            throw new midgardmvc_exception_httperror('Failed to create user');
+        }
+
+        if (!$transaction->commit())
+        {
+            $transaction->rollback();
+            midgardmvc_core::get_instance()->authorization->leave_sudo();
+            throw new midgardmvc_exception_httperror('Failed to create user');
+        }
+        midgardmvc_core::get_instance()->authorization->leave_sudo();
+        return $account;
     }
 }
