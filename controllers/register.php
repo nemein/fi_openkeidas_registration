@@ -100,15 +100,18 @@ class fi_openkeidas_registration_controllers_register
             'active' => true,
             'password' => ''
         );
-        $user = new midgard_user($tokens);
-        if ($user)
+        try
         {
-            $person = $user->get_person();
-            if ($person)
+            $user = new midgard_user($tokens);
+            if ($user)
             {
-                return new fi_openkeidas_registration_user($person->guid);
+                $person = $user->get_person();
+                if ($person)
+                {
+                    return new fi_openkeidas_registration_user($person->guid);
+                }
             }
-        }
+        } catch (midgard_error_exception $e) {}
         return new fi_openkeidas_registration_user();
     }
 
