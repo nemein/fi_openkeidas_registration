@@ -40,12 +40,33 @@ class fi_openkeidas_registration_controllers_register
 
         $account = $this->create_account($user, $password);
 
+        /*
         midgardmvc_core::get_instance()->authentication->login(array(
             'login' => $account->login,
             'password' => $password
         ));
+         */
 
-        midgardmvc_core::get_instance()->head->relocate('/');
+        $this->send_password($user->email, "{$user->firstname} {$user->lastname}", $password);
+
+        midgardmvc_core::get_instance()->uimessages->add(array(
+            'title' => 'Käyttäjätunnus luotu',
+            'message' => 'Sinulle on nyt luotu käyttäjätunnus. Saat salasanan pian sähköpostiisi.',
+            'type' => 'ok'
+        ));
+        midgardmvc_core::get_instance()->head->relocate('/mgd:login');
+    }
+
+    private function send_password($email, $name, $password)
+    {
+        $mail = new ezcMailComposer();
+        $mail->from = new ezcMailAddress('noreply@openkeidas.fi', 'Open Keidas');
+        $mail->addTo(new ezcMailAddress($email, $name));
+        $mail->subject = 'Open Keidas -tunnuksesi';
+        $mail->plainText = "Hei,\n\nOpen Keidas-salasanasi on: {$password}\n\nVoit käyttää sitä kirjautuaksesi osoitteessa http://openkeidas.fi/mgd:login";
+        $mail->build();
+        $transport = new ezcMailMtaTransport();
+        $transport->send($mail);
     }
 
     private function generate_form(fi_openkeidas_registration_user $user)
@@ -84,7 +105,12 @@ class fi_openkeidas_registration_controllers_register
     {
         if (!$this->check_email($user->email))
         {
-            throw new midgardmvc_exception_unauthorized('User account with this email already exists');
+            midgardmvc_core::get_instance()->uimessages->add(array(
+                'title' => 'Käyttäjätunnus olemassa',
+                'message' => 'Antamallasi sähköpostiosoitteella on jo käyttäjätunnus. Ole hyvä ja kirjaudu sisään.',
+                'type' => 'ok'
+            ));
+            midgardmvc_core::get_instance()->head->relocate('/mgd:login');
         }
 
         midgardmvc_core::get_instance()->authorization->enter_sudo('fi_openkeidas_registration'); 

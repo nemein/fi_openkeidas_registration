@@ -1,6 +1,9 @@
 requires:
   midgardmvc_helper_forms:
     - {type: github, user: midgardproject, repository: midgardmvc_helper_forms, branch: master}
+requires_pear:
+    Mail:
+        channel: components.ez.no
 routes:
   registration:
     path: /lomake

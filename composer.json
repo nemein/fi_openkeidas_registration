@@ -18,6 +18,7 @@
   "require": {
     "midgard/midgardmvc-helper-forms": "dev-master",
     "midgard/midgardmvc-core": "dev-master",
+    "zetacomponents/mail": "dev-master",
     "ext-midgard2": ">=10.05.5"
   },
   "autoload": {
