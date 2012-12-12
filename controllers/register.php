@@ -29,9 +29,11 @@ class fi_openkeidas_registration_controllers_register
         }
 
         // Read values from POST
-        $user = new fi_openkeidas_registration_user();
-        $form = $this->generate_form($user);
-        $form->process_post(); 
+        $tmp_user = new fi_openkeidas_registration_user();
+        $form = $this->generate_form($tmp_user);
+        $form->process_post();
+
+        $user = $this->check_existing($form->memberid->value);
 
         // Populate user
         midgardmvc_helper_forms_mgdschema::form_to_object($form, $user);
@@ -90,6 +92,26 @@ class fi_openkeidas_registration_controllers_register
         return $form;
     }
 
+    private function check_existing($memberid)
+    {
+        $tokens = array(
+            'login' => $memberid,
+            'authtype' => 'OpenID',
+            'active' => true,
+            'password' => ''
+        );
+        $user = new midgard_user($tokens);
+        if ($user)
+        {
+            $person = $user->get_person();
+            if ($person)
+            {
+                return new fi_openkeidas_registration_user($person->guid);
+            }
+        }
+        return new fi_openkeidas_registration_user();
+    }
+
     private function check_email($email)
     {
         $qb = new midgard_query_builder('fi_openkeidas_registration_user');
@@ -118,7 +140,12 @@ class fi_openkeidas_registration_controllers_register
         $transaction = new midgard_transaction();
         $transaction->begin();
 
-        if (!$user->create())
+        $method = 'create';
+        if ($user->guid)
+        {
+            $method = 'update';
+        }
+        if (!$user->$method())
         {
             $transaction->rollback();
             midgardmvc_core::get_instance()->authorization->leave_sudo();
