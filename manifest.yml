@@ -11,3 +11,9 @@ routes:
     action: form
     template_aliases:
       content: fog-show-form
+  forgot:
+    path: /unohtunut
+    controller: fi_openkeidas_registration_controllers_forgot
+    action: form
+    template_aliases:
+      content: fog-show-forgot
