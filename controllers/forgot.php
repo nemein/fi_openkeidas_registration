@@ -32,6 +32,7 @@ class fi_openkeidas_registration_controllers_forgot
         $password = $this->generate_password();
         $this->update_account($form->email->value, $password);
         $this->send_password($form->email->value, $password);
+        midgardmvc_core::get_instance()->head->relocate('/mgd:login');
     }
 
     private function generate_form()
